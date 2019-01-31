@@ -74,17 +74,21 @@ void boolbvt::convert_update_rec(
     bvt index_bv=convert_bv(designator.op0());
 
     const array_typet &array_type=to_array_type(type);
-
     const typet &subtype = array_type.subtype();
+    const exprt &size = array_type.size();
 
     std::size_t element_size=boolbv_width(subtype);
 
+    DATA_INVARIANT(
+      size.id() == ID_constant, "update expects constant-sized array");
+
     // iterate over array
-    const std::size_t size = numeric_cast_v<std::size_t>(array_type.size());
+    const std::size_t size_int =
+      numeric_cast_v<std::size_t>(to_constant_expr(size));
 
     bvt tmp_bv=bv;
 
-    for(std::size_t i = 0; i != size; ++i)
+    for(std::size_t i = 0; i != size_int; ++i)
     {
       std::size_t new_offset=offset+i*element_size;
 

@@ -208,7 +208,8 @@ exprt java_bytecode_convert_methodt::variable(
   java_bytecode_convert_methodt::variable_cast_argumentt do_cast)
 {
   typet t=java_type_from_char(type_char);
-  const std::size_t number_int = numeric_cast_v<std::size_t>(arg);
+  const std::size_t number_int =
+    numeric_cast_v<std::size_t>(to_constant_expr(arg));
   variablest &var_list=variables[number_int];
 
   // search variable in list for correct frame / address if necessary
@@ -1334,7 +1335,8 @@ code_blockt java_bytecode_convert_methodt::convert_instructions(
     else if(statement=="goto" || statement=="goto_w")
     {
       PRECONDITION(op.empty() && results.empty());
-      const mp_integer number = numeric_cast_v<mp_integer>(arg0);
+      const mp_integer number =
+        numeric_cast_v<mp_integer>(to_constant_expr(arg0));
       code_gotot code_goto(label(integer2string(number)));
       c=code_goto;
     }
@@ -1342,7 +1344,8 @@ code_blockt java_bytecode_convert_methodt::convert_instructions(
     {
       // As 'goto', except we must also push the subroutine return address:
       PRECONDITION(op.empty() && results.size() == 1);
-      const mp_integer number = numeric_cast_v<mp_integer>(arg0);
+      const mp_integer number =
+        numeric_cast_v<mp_integer>(to_constant_expr(arg0));
       code_gotot code_goto(label(integer2string(number)));
       c=code_goto;
       results[0]=
@@ -1369,7 +1372,7 @@ code_blockt java_bytecode_convert_methodt::convert_instructions(
     else if(statement==patternt("?const"))
     {
       assert(results.size()==1);
-      results = convert_const(statement, arg0, results);
+      results = convert_const(statement, to_constant_expr(arg0), results);
     }
     else if(statement==patternt("?ipush"))
     {
@@ -1382,7 +1385,8 @@ code_blockt java_bytecode_convert_methodt::convert_instructions(
     else if(statement==patternt("if_?cmp??"))
     {
       PRECONDITION(op.size() == 2 && results.empty());
-      const mp_integer number = numeric_cast_v<mp_integer>(arg0);
+      const mp_integer number =
+        numeric_cast_v<mp_integer>(to_constant_expr(arg0));
       c = convert_if_cmp(
         address_map, statement, op, number, i_it->source_location);
     }
@@ -1399,19 +1403,22 @@ code_blockt java_bytecode_convert_methodt::convert_instructions(
 
       INVARIANT(!id.empty(), "unexpected bytecode-if");
       PRECONDITION(op.size() == 1 && results.empty());
-      const mp_integer number = numeric_cast_v<mp_integer>(arg0);
+      const mp_integer number =
+        numeric_cast_v<mp_integer>(to_constant_expr(arg0));
       c = convert_if(address_map, op, id, number, i_it->source_location);
     }
     else if(statement==patternt("ifnonnull"))
     {
       PRECONDITION(op.size() == 1 && results.empty());
-      const mp_integer number = numeric_cast_v<mp_integer>(arg0);
+      const mp_integer number =
+        numeric_cast_v<mp_integer>(to_constant_expr(arg0));
       c = convert_ifnonull(address_map, op, number, i_it->source_location);
     }
     else if(statement==patternt("ifnull"))
     {
       PRECONDITION(op.size() == 1 && results.empty());
-      const mp_integer number = numeric_cast_v<mp_integer>(arg0);
+      const mp_integer number =
+        numeric_cast_v<mp_integer>(to_constant_expr(arg0));
       c = convert_ifnull(address_map, op, number, i_it->source_location);
     }
     else if(statement=="iinc")
@@ -1606,7 +1613,8 @@ code_blockt java_bytecode_convert_methodt::convert_instructions(
     {
       // The first argument is the type, the second argument is the number of
       // dimensions.  The size of each dimension is on the stack.
-      const std::size_t dimension = numeric_cast_v<std::size_t>(arg1);
+      const std::size_t dimension =
+        numeric_cast_v<std::size_t>(to_constant_expr(arg1));
 
       op=pop(dimension);
       assert(results.size()==1);
@@ -1930,7 +1938,8 @@ code_switcht java_bytecode_convert_methodt::convert_switch(
   {
     if(is_label)
     {
-      const mp_integer number = numeric_cast_v<mp_integer>(*a_it);
+      const mp_integer number =
+        numeric_cast_v<mp_integer>(to_constant_expr(*a_it));
       // The switch case does not contain any code, it just branches via a GOTO
       // to the jump target of the tableswitch/lookupswitch case at
       // hand. Therefore we consider this code to belong to the source bytecode
@@ -2039,7 +2048,7 @@ void java_bytecode_convert_methodt::convert_dup2_x2(
 
 exprt::operandst &java_bytecode_convert_methodt::convert_const(
   const irep_idt &statement,
-  const exprt &arg0,
+  const constant_exprt &arg0,
   exprt::operandst &results) const
 {
   const char type_char = statement[0];
@@ -2059,7 +2068,7 @@ exprt::operandst &java_bytecode_convert_methodt::convert_const(
       value.from_integer(number);
     }
     else
-      value.from_expr(to_constant_expr(arg0));
+      value.from_expr(arg0);
 
     results[0] = value.to_expr();
   }

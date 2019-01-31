@@ -1610,8 +1610,13 @@ exprt simplify_exprt::bits2expr(
   else if(type.id()==ID_array)
   {
     const array_typet &array_type=to_array_type(type);
+    const auto &size = array_type.size();
 
-    const std::size_t n_el = numeric_cast_v<std::size_t>(array_type.size());
+    if(!size.is_constant())
+      return nil_exprt();
+
+    const std::size_t n_el =
+      numeric_cast_v<std::size_t>(to_constant_expr(size));
 
     const auto el_size_opt = pointer_offset_bits(array_type.subtype(), ns);
     CHECK_RETURN(el_size_opt.has_value() && *el_size_opt > 0);
