@@ -12,7 +12,6 @@ Author: Daniel Kroening, kroening@kroening.com
 #include "goto_symex.h"
 
 #include <util/arith_tools.h>
-#include <util/base_type.h>
 #include <util/byte_operators.h>
 #include <util/c_types.h>
 #include <util/exception_utils.h>
@@ -84,7 +83,7 @@ void goto_symext::parameter_assignments(
     else
     {
       // It should be the same exact type.
-      if(!base_type_eq(parameter_type, rhs.type(), ns))
+      if(parameter_type != rhs.type())
       {
         const typet &rhs_type = rhs.type();
 
@@ -460,7 +459,7 @@ void goto_symext::return_assignment(statet &state)
     code_assignt assignment(frame.return_value, value);
 
     INVARIANT(
-      base_type_eq(assignment.lhs().type(), assignment.rhs().type(), ns),
+      assignment.lhs().type() == assignment.rhs().type(),
       "goto_symext::return_assignment type mismatch");
 
     symex_assign(state, assignment);
